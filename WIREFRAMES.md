@@ -4,7 +4,7 @@ This is the home page for users who are not logged-in, there is a login and a re
 
 ## home-logged-in
 
-This is the home page for logged-in users, they are able to play games and log out. 
+This is the home page for logged-in users, they are able to play games and log out. Note that in the real site the nav bar will display a log out button rather than the login and register buttons. 
 
 ## login
 
