@@ -1,0 +1,37 @@
+{
+  "name": "chess-success",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.7.6",
+    "chess.js": "^1.4.0",
+    "pinia": "^2.1.2",
+    "stockfish": "^18.0.7",
+    "stockfish.js": "^10.0.2",
+    "vue": "^3.4.4",
+    "vue-router": "^4.3.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.6",
+    "vite": "^8.0.10"
+  },
+  "description": "Here is the link to the back-end repository: https://github.com/ovenstore/chess-success-backend",
+  "main": "vite.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ovenstore/chess-success.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ovenstore/chess-success/issues"
+  },
+  "homepage": "https://github.com/ovenstore/chess-success#readme"
+}
