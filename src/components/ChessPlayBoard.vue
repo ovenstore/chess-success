@@ -6,7 +6,7 @@
         :selected="selectedSquare"
         :availableMoves="availableMoves"
         :lastMove="lastMove"
-        :onSquareClick="onSquareClick"
+        @square-click="onSquareClick"
       />
     </div>
 
@@ -27,19 +27,26 @@
       </div>
 
       <div class="form-actions">
-        <button class="cta-button" type="button" @click="resetGame">Reset board</button>
-        <button
-          class="cta-button"
-          type="button"
-          :disabled="!finished || saving || !isAuthenticated"
-          @click="saveGame"
-        >
-          Save game to profile
-        </button>
+        <button class="ghost-button" type="button" @click="resignGame" :disabled="finished">Resign</button>
       </div>
 
-      <div v-if="saveMessage" class="alert" :class="{ 'alert-danger': saveError }">
-        {{ saveMessage }}
+      <!-- Save message removed as auto-save has no UI feedback -->
+    </div>
+
+    <div v-if="finished" class="game-over-overlay">
+      <div class="game-over-card">
+        <h2>{{ endTitle }}</h2>
+        <p class="subtitle">{{ endSubtitle }}</p>
+
+        <div class="result-details">
+          <p><strong>Result:</strong> {{ gameResultText }}</p>
+          <p><strong>Your points:</strong> {{ userStore.user?.points ?? '-' }} <span :class="{ 'points-positive': pointsChange > 0, 'points-negative': pointsChange < 0 }">({{ pointsChangeText }})</span></p>
+        </div>
+
+        <div class="form-actions">
+          <button class="cta-button" type="button" @click="reviewSavedGame">Review game</button>
+          <button class="ghost-button" type="button" @click="startNewGame">Play again</button>
+        </div>
       </div>
     </div>
   </section>
@@ -48,6 +55,7 @@
 <script setup>
 import { Chess } from 'chess.js';
 import { computed, reactive, ref, onMounted, onBeforeUnmount } from 'vue';
+import { useRouter } from 'vue-router';
 import ChessBoardDisplay from './ChessBoardDisplay.vue';
 import { useUserStore } from '../stores/user';
 import stockfishWorkerUrl from '../../stockfish-18-lite-single.js?url';
@@ -58,17 +66,21 @@ const props = defineProps({
 });
 
 const userStore = useUserStore();
+const router = useRouter();
 const isAuthenticated = userStore.isAuthenticated;
-const game = reactive({ instance: new Chess() });
+const chess = new Chess();
 const selectedSquare = ref('');
 const availableMoves = ref([]);
 const lastMove = ref([]);
 const finished = ref(false);
 const resultTag = ref('');
-const saveMessage = ref('');
-const saveError = ref(false);
-const saving = ref(false);
 const actualUserColor = ref(props.userColor);
+const currentTurn = ref(chess.turn());
+const boardSquares = ref([]);
+const history = ref(chess.history());
+const pointsBeforeGame = ref(userStore.user?.points ?? 0);
+const pointsChange = ref(0);
+const savedGameId = ref(null);
 
 const stockfishWorker = ref(null);
 const stockfishReady = ref(false);
@@ -76,11 +88,14 @@ const stockfishReadyPromise = ref(null);
 const stockfishReadyResolver = ref(null);
 const stockfishMoveResolver = ref(null);
 const engineTiming = {
-  easy: 300,
-  medium: 800,
-  hard: 1500,
+  easy: 1,
+  medium: 2,
+  hard: 3,
+};const engineSkillLevels = {
+  easy: 1,
+  medium: 5,
+  hard: 10,
 };
-
 function initStockfish() {
   if (typeof Worker === 'undefined') {
     console.warn('Web Workers are not available in this environment');
@@ -98,6 +113,8 @@ function initStockfish() {
       console.error('Stockfish worker error', error);
     });
     stockfishWorker.value.postMessage('uci');
+    sendStockfishCommand('setoption name UCI_LimitStrength value true');
+    sendStockfishCommand(`setoption name Skill Level value ${engineSkillLevels[props.difficulty] || 5}`);
     stockfishWorker.value.postMessage('isready');
   } catch (error) {
     console.error('Unable to initialize Stockfish worker', error);
@@ -176,28 +193,36 @@ async function getBestMoveWithStockfish(fen) {
   });
 }
 
-const boardSquares = computed(() => {
+function refreshBoardState() {
+  currentTurn.value = chess.turn();
+  history.value = chess.history();
   const rows = [];
   const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+  const isBlackPerspective = actualUserColor.value === 'black';
 
-  for (let rank = 8; rank >= 1; rank -= 1) {
-    for (const file of files) {
+  const rankOrder = isBlackPerspective ? [1, 2, 3, 4, 5, 6, 7, 8] : [8, 7, 6, 5, 4, 3, 2, 1];
+  const fileOrder = isBlackPerspective ? ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'] : ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+
+  for (const rank of rankOrder) {
+    for (const file of fileOrder) {
       const square = `${file}${rank}`;
-      const piece = game.instance.get(square);
+      const piece = chess.get(square);
       rows.push({ square, pieceSymbol: piece ? symbolForPiece(piece) : '', piece });
     }
   }
 
-  return rows;
-});
-
-const history = computed(() => game.instance.history());
+  boardSquares.value = rows;
+}
 
 const statusMessage = computed(() => {
   if (finished.value) {
-    return 'Game finished. Save your match or reset to play again.';
+    return resultTag.value === 'win'
+      ? 'Game over — you won!'
+      : resultTag.value === 'loss'
+      ? 'Game over — you lost.'
+      : 'Game over — draw.';
   }
-  const turn = game.instance.turn() === 'w' ? 'White' : 'Black';
+  const turn = currentTurn.value === 'w' ? 'White' : 'Black';
   const isUserTurn =
     (actualUserColor.value === 'white' && turn === 'White') ||
     (actualUserColor.value === 'black' && turn === 'Black');
@@ -211,20 +236,45 @@ const gameResultText = computed(() => {
   return resultTag.value === 'win' ? 'Victory' : resultTag.value === 'loss' ? 'Defeat' : 'Draw';
 });
 
+const endTitle = computed(() => {
+  if (!finished.value) {
+    return '';
+  }
+  return resultTag.value === 'win' ? 'Victory!' : resultTag.value === 'loss' ? 'Defeat' : 'Draw';
+});
+
+const endSubtitle = computed(() => {
+  if (!finished.value) {
+    return '';
+  }
+  return resultTag.value === 'win'
+    ? 'You have beaten the bot.'
+    : resultTag.value === 'loss'
+    ? 'You resigned or were defeated.'
+    : 'The game ended in a draw.';
+});
+
+const pointsChangeText = computed(() => {
+  const change = pointsChange.value;
+  if (change > 0) return `+${change}`;
+  if (change < 0) return `${change}`;
+  return '0';
+});
+
 function symbolForPiece(piece) {
   const map = {
-    p: '♟',
-    r: '♜',
-    n: '♞',
-    b: '♝',
-    q: '♛',
-    k: '♚',
-    P: '♙',
-    R: '♖',
-    N: '♘',
-    B: '♗',
-    Q: '♕',
-    K: '♔',
+    p: '♙',
+    r: '♖',
+    n: '♘',
+    b: '♗',
+    q: '♕',
+    k: '♔',
+    P: '♟',
+    R: '♜',
+    N: '♞',
+    B: '♝',
+    Q: '♛',
+    K: '♚',
   };
   return map[piece.color === 'w' ? piece.type.toUpperCase() : piece.type] || '';
 }
@@ -234,7 +284,7 @@ function onSquareClick(square) {
     return;
   }
 
-  const piece = game.instance.get(square);
+  const piece = chess.get(square);
   if (selectedSquare.value && availableMoves.value.includes(square)) {
     tryMove(selectedSquare.value, square);
     return;
@@ -245,35 +295,36 @@ function onSquareClick(square) {
 
   if (piece && piece.color === (actualUserColor.value === 'white' ? 'w' : 'b')) {
     selectedSquare.value = square;
-    availableMoves.value = game.instance.moves({ square, verbose: true }).map((move) => move.to);
+    availableMoves.value = chess.moves({ square, verbose: true }).map((move) => move.to);
   }
 }
 
 function tryMove(from, to) {
-  const move = game.instance.move({ from, to, promotion: 'q' });
+  const move = chess.move({ from, to, promotion: 'q' });
   if (move) {
     lastMove.value = [move.from, move.to];
     selectedSquare.value = '';
     availableMoves.value = [];
+    refreshBoardState();
     evaluateBoardState();
-    if (!game.instance.isGameOver()) {
+    if (!chess.isGameOver()) {
       window.setTimeout(executeBotMove, 300);
     }
   }
 }
 
 function isUserTurn() {
-  const turn = game.instance.turn();
+  const turn = chess.turn();
   return actualUserColor.value === 'white' ? turn === 'w' : turn === 'b';
 }
 
 async function executeBotMove() {
-  if (game.instance.isGameOver()) {
+  if (chess.isGameOver()) {
     evaluateBoardState();
     return;
   }
 
-  const fen = game.instance.fen();
+  const fen = chess.fen();
   const move = await getBestMoveWithStockfish(fen);
   if (!move) {
     evaluateBoardState();
@@ -285,20 +336,21 @@ async function executeBotMove() {
 
 function makeBotMove(move) {
   const appliedMove = typeof move === 'string'
-    ? game.instance.move(move, { sloppy: true })
-    : game.instance.move(move);
+    ? chess.move(move, { sloppy: true })
+    : chess.move(move);
 
   if (appliedMove) {
     lastMove.value = [appliedMove.from, appliedMove.to];
+    selectedSquare.value = '';
+    availableMoves.value = [];
+    refreshBoardState();
+    evaluateBoardState();
   }
-  selectedSquare.value = '';
-  availableMoves.value = [];
-  evaluateBoardState();
 }
 
-function evaluateMaterial(chess) {
+function evaluateMaterial(chessInstance) {
   const values = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
-  const board = chess.board();
+  const board = chessInstance.board();
   let score = 0;
   board.forEach((row) => {
     row.forEach((square) => {
@@ -311,67 +363,90 @@ function evaluateMaterial(chess) {
 }
 
 function evaluateBoardState() {
-  if (!game.instance.isGameOver()) {
+  if (!chess.isGameOver()) {
     return;
   }
 
   finished.value = true;
-  if (game.instance.isDraw() || game.instance.isStalemate() || game.instance.isThreefoldRepetition() || game.instance.isInsufficientMaterial()) {
+  if (chess.isDraw() || chess.isStalemate() || chess.isThreefoldRepetition() || chess.isInsufficientMaterial()) {
     resultTag.value = 'draw';
-  } else if (game.instance.turn() === 'w') {
-    resultTag.value = 'loss';
   } else {
-    resultTag.value = 'win';
+    const whiteWon = chess.turn() === 'b';
+    const userPlayingWhite = actualUserColor.value === 'white';
+
+    if ((whiteWon && userPlayingWhite) || (!whiteWon && !userPlayingWhite)) {
+      resultTag.value = 'win';
+    } else {
+      resultTag.value = 'loss';
+    }
+  }
+
+  if (isAuthenticated) {
+    autoSaveGame();
   }
 }
 
-async function saveGame() {
-  if (!isAuthenticated) {
-    saveMessage.value = 'Log in to save a game.';
-    saveError.value = true;
-    return;
-  }
-
-  if (!finished.value) {
-    saveMessage.value = 'Finish the game before saving.';
-    saveError.value = true;
-    return;
-  }
-
-  saving.value = true;
-  saveError.value = false;
+async function autoSaveGame() {
   const payload = {
-    pgn: game.instance.pgn(),
+    pgn: chess.pgn(),
     result: resultTag.value,
     difficulty: props.difficulty,
+    userColor: actualUserColor.value,
   };
 
-  const ok = await userStore.saveGame(payload);
-  if (ok) {
-    saveMessage.value = 'Game saved successfully.';
-    saveError.value = false;
-  } else {
-    saveMessage.value = userStore.error || 'Could not save game.';
-    saveError.value = true;
+  const response = await userStore.saveGame(payload);
+  if (response && response._id) {
+    savedGameId.value = response._id;
   }
-  saving.value = false;
+
+  const afterPoints = userStore.user?.points ?? pointsBeforeGame.value;
+  pointsChange.value = afterPoints - pointsBeforeGame.value;
+}
+
+async function resignGame() {
+  if (finished.value) {
+    return;
+  }
+
+  finished.value = true;
+  resultTag.value = 'loss';
+  refreshBoardState();
+
+  if (isAuthenticated) {
+    await autoSaveGame();
+  }
+}
+
+function reviewSavedGame() {
+  if (savedGameId.value) {
+    router.push(`/games/${savedGameId.value}`);
+    return;
+  }
+  router.push('/games');
+}
+
+function startNewGame() {
+  resetGame();
 }
 
 function resetGame() {
-  game.instance = new Chess();
+  chess.reset();
   selectedSquare.value = '';
   availableMoves.value = [];
   lastMove.value = [];
   finished.value = false;
   resultTag.value = '';
-  saveMessage.value = '';
-  saveError.value = false;
+  savedGameId.value = null;
+  pointsChange.value = 0;
+  pointsBeforeGame.value = userStore.user?.points ?? 0;
 
   if (props.userColor === 'random') {
     actualUserColor.value = Math.random() < 0.5 ? 'white' : 'black';
   } else {
     actualUserColor.value = props.userColor;
   }
+
+  refreshBoardState();
 
   if (actualUserColor.value === 'black') {
     window.setTimeout(executeBotMove, 300);

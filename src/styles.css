@@ -344,6 +344,50 @@ a {
   pointer-events: none;
 }
 
+.game-over-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.72);
+  z-index: 50;
+  padding: 2rem;
+}
+
+.game-over-card {
+  width: min(520px, 100%);
+  background: rgba(18, 18, 18, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.25rem;
+  padding: 2rem;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.game-over-card h2 {
+  margin-bottom: 0.5rem;
+  color: var(--accent);
+}
+
+.game-over-card .result-details {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.game-over-card .result-details p {
+  margin: 0.75rem 0;
+}
+
+.points-positive {
+  color: var(--success);
+}
+
+.points-negative {
+  color: var(--danger);
+}
+
 .board-footer {
   display: grid;
   gap: 1rem;

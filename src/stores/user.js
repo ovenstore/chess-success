@@ -112,10 +112,10 @@ export const useUserStore = defineStore('user', {
       this.loading = true;
       this.error = '';
       try {
-        await api.post('/games', payload);
+        const response = await api.post('/games', payload);
         await this.fetchProfile();
         await this.fetchGames();
-        return true;
+        return response.data;
       } catch (error) {
         this.error = error.response?.data?.error || 'Unable to save game';
         return false;

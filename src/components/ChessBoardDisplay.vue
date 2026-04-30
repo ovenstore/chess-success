@@ -4,7 +4,7 @@
       v-for="square in board"
       :key="square.square"
       :class="squareClasses(square)"
-      @click="() => onSquareClick && onSquareClick(square.square)"
+      @click="$emit('square-click', square.square)"
     >
       <span>{{ square.pieceSymbol }}</span>
     </div>
@@ -17,8 +17,9 @@ const props = defineProps({
   selected: { type: String, default: '' },
   availableMoves: { type: Array, default: () => [] },
   lastMove: { type: Array, default: () => [] },
-  onSquareClick: Function,
 });
+
+defineEmits(['square-click']);
 
 const isDarkSquare = (square) => {
   const file = square[0].charCodeAt(0) - 97;

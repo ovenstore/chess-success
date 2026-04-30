@@ -24,10 +24,24 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
-  if (to.meta.auth && !userStore.isAuthenticated) {
-    return next('/login');
+  if (to.meta.auth) {
+    if (!userStore.token) {
+      return next('/login');
+    }
+    // If user not loaded, try to fetch profile to validate token
+    if (!userStore.user) {
+      try {
+        await userStore.fetchProfile();
+      } catch {
+        userStore.clearAuth();
+        return next('/login');
+      }
+    }
+    if (!userStore.user) {
+      return next('/login');
+    }
   }
   if (to.meta.guest && userStore.isAuthenticated) {
     return next('/dashboard');

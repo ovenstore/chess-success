@@ -1,6 +1,6 @@
 <template>
   <section class="page-card">
-    <h1 class="section-title">Welcome back, {{ user?.username || 'Player' }}</h1>
+    <h1 class="section-title">Welcome back, {{ user.username }}</h1>
     <p class="subtitle">Track points, review recent games, and challenge the bot.</p>
 
     <div class="stat-grid">

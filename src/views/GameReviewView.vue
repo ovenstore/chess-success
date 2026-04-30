@@ -77,10 +77,13 @@ const updateBoard = () => {
     chess.move(move, { sloppy: true });
   });
 
-  const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+  const isBlackPerspective = game.value?.userColor === 'black';
+  const rankOrder = isBlackPerspective ? [1, 2, 3, 4, 5, 6, 7, 8] : [8, 7, 6, 5, 4, 3, 2, 1];
+  const fileOrder = isBlackPerspective ? ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'] : ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+
   const squares = [];
-  for (let rank = 8; rank >= 1; rank -= 1) {
-    for (const file of files) {
+  for (const rank of rankOrder) {
+    for (const file of fileOrder) {
       const square = `${file}${rank}`;
       const piece = chess.get(square);
       squares.push({ square, pieceSymbol: piece ? symbolForPiece(piece) : '' });
@@ -90,7 +93,7 @@ const updateBoard = () => {
 };
 
 const symbolForPiece = (piece) => {
-  const map = { p: '♟', r: '♜', n: '♞', b: '♝', q: '♛', k: '♚', P: '♙', R: '♖', N: '♘', B: '♗', Q: '♕', K: '♔' };
+  const map = { P: '♟', R: '♜', N: '♞', B: '♝', Q: '♛', K: '♚', p: '♙', r: '♖', n: '♘', b: '♗', q: '♕', k: '♔' };
   return map[piece.color === 'w' ? piece.type.toUpperCase() : piece.type] || '';
 };
 
