@@ -267,36 +267,42 @@ If the front-end cannot connect, verify the back-end is running and `VITE_API_BA
 
 ### 9.2 Deploy the front-end to GitHub Pages
 
-1. In the `chess-success` front-end repo, verify `package.json` has a `homepage` or build path if required.
-2. Build the production site:
+1. In the `chess-success` front-end repo, install `gh-pages` if it is not already installed:
+
+```bash
+npm install --save-dev gh-pages
+```
+
+2. Add or verify these entries in `package.json`:
+
+```json
+"homepage": "https://<your-github-username>.github.io/<your-repo-name>",
+"scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "deploy": "gh-pages -d dist"
+}
+```
+
+3. Build the production site:
 
 ```bash
 npm run build
 ```
 
-3. Deploy the generated `dist` folder to GitHub Pages according to your repository settings, or use a deployment action.
-4. Confirm the GitHub Pages site is published and reachable.
+4. Deploy the built files to GitHub Pages:
 
-### 9.3 Link deployed front-end to deployed back-end
-
-1. Update the front-end deployment configuration or environment file to use the deployed backend URL.
-2. If the front-end deployment uses environment variables, set:
-
-```env
-VITE_API_BASE_URL=https://<your-railway-backend>/api
+```bash
+npm run deploy
 ```
 
-3. Rebuild and redeploy the front-end so it points at the production API.
+5. Confirm the GitHub Pages site is published and reachable.
 
-### 9.4 Verify deployed connection
+### 9.3 Verify deployed connection
 
 1. Open the deployed front-end URL in a browser.
 2. Use the app to log in and verify requests go to the deployed backend.
 3. Confirm API responses succeed and no CORS errors appear in the browser console.
-
-## 10. Claude Code / AI tooling setup
-
-If you use Claude Code or an equivalent AI workflow for this project, document your configuration in a `CLAUDE.md` file or similar.
 
 ### Example configuration entries
 
