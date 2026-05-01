@@ -59,6 +59,7 @@ import { useRouter } from 'vue-router';
 import ChessBoardDisplay from './ChessBoardDisplay.vue';
 import { useUserStore } from '../stores/user';
 import stockfishWorkerUrl from '../../stockfish-18-lite-single.js?url';
+import wasmUrl from '../../stockfish-18-lite-single.wasm?url';
 
 const props = defineProps({
   difficulty: { type: String, default: 'easy' },
