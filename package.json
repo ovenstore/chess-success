@@ -12,6 +12,7 @@
   "dependencies": {
     "axios": "^1.7.6",
     "chess.js": "^1.4.0",
+    "gh-pages": "^6.3.0",
     "pinia": "^2.1.2",
     "stockfish": "^18.0.7",
     "stockfish.js": "^10.0.2",
