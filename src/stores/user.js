@@ -1,9 +1,32 @@
 import { defineStore } from 'pinia';
 import api from '../api/http';
 
+function parseJwt(token) {
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch {
+    return null;
+  }
+}
+
+function isTokenExpired(token) {
+  const payload = parseJwt(token);
+  return !payload || typeof payload.exp !== 'number' || Date.now() / 1000 >= payload.exp;
+}
+
+function getStoredToken() {
+  const token = localStorage.getItem('chess-success-token') || '';
+  if (!token) return '';
+  if (isTokenExpired(token)) {
+    localStorage.removeItem('chess-success-token');
+    return '';
+  }
+  return token;
+}
+
 export const useUserStore = defineStore('user', {
   state: () => ({
-    token: localStorage.getItem('chess-success-token') || '',
+    token: getStoredToken(),
     user: null,
     games: [],
     leaderboard: [],
@@ -63,6 +86,11 @@ export const useUserStore = defineStore('user', {
         const response = await api.get('/users/me');
         this.user = response.data;
       } catch (error) {
+        if (error.response?.status === 401) {
+          this.clearAuth();
+          this.error = error.response?.data?.error || 'Session expired';
+          throw error;
+        }
         this.error = error.response?.data?.error || 'Unable to fetch profile';
       } finally {
         this.loading = false;
