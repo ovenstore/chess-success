@@ -58,8 +58,8 @@ import { computed, reactive, ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import ChessBoardDisplay from './ChessBoardDisplay.vue';
 import { useUserStore } from '../stores/user';
-import stockfishWorkerUrl from '../../stockfish-18-lite-single.js?url';
-import wasmUrl from '../../stockfish-18-lite-single.wasm?url';
+// import stockfishWorkerUrl from '/stockfish-18-lite-single.js?url';
+// import wasmUrl from '/stockfish-18-lite-single.wasm?url';
 
 const props = defineProps({
   difficulty: { type: String, default: 'easy' },
@@ -108,7 +108,8 @@ function initStockfish() {
       stockfishReadyResolver.value = resolve;
     });
 
-    stockfishWorker.value = new Worker(stockfishWorkerUrl);
+    // stockfishWorker.value = new Worker(stockfishWorkerUrl);
+    stockfishWorker.value = new Worker(`${import.meta.env.BASE_URL}stockfish-18-lite-single.js`);
     stockfishWorker.value.addEventListener('message', onStockfishMessage);
     stockfishWorker.value.addEventListener('error', (error) => {
       console.error('Stockfish worker error', error);
