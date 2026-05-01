@@ -288,20 +288,7 @@ VITE_API_BASE_URL=https://<your-railway-backend>/api
 
 3. Rebuild and redeploy the front-end so it points at the production API.
 
-### 9.4 CORS configuration
-
-If the back-end is hosted on Railway and the front-end is on GitHub Pages, enable CORS in the back-end.
-
-In the backend app, allow requests from the front-end origin and enable JSON headers. A typical example in Express is:
-
-```js
-const cors = require('cors');
-app.use(cors({ origin: 'https://<your-github-pages-site>' }));
-```
-
-If you use a wildcard origin during early development, do so only temporarily.
-
-### 9.5 Verify deployed connection
+### 9.4 Verify deployed connection
 
 1. Open the deployed front-end URL in a browser.
 2. Use the app to log in and verify requests go to the deployed backend.
