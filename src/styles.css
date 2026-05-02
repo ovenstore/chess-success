@@ -24,7 +24,9 @@ html, body, #app {
 body {
   margin: 0;
   font-family: Inter, system-ui, sans-serif;
-  background: radial-gradient(circle at top, #2c2c2c 0%, #131313 35%, #090909 100%);
+  background-color: #181818;
+  background-image: repeating-conic-gradient(#181818 0% 25%, #242424 0% 50%);
+  background-size: 48px 48px;
   color: var(--text);
 }
 
@@ -71,7 +73,7 @@ a {
   height: 3rem;
   background: var(--accent);
   color: #111;
-  border-radius: 0.85rem;
+  border-radius: 0.55rem;
   font-size: 1.55rem;
 }
 
@@ -95,7 +97,7 @@ a {
 
 .nav-links a {
   padding: 0.65rem 1rem;
-  border-radius: 999px;
+  border-radius: 0.55rem;
   background: rgba(255, 203, 5, 0.1);
   color: var(--text);
   transition: background 0.2s ease;
@@ -116,7 +118,7 @@ a {
   padding: 0.6rem 0.9rem;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 999px;
+  border-radius: 0.55rem;
 }
 
 .ghost-button {
@@ -124,7 +126,7 @@ a {
   border: 1px solid rgba(255, 203, 5, 0.3);
   background: transparent;
   padding: 0.7rem 1rem;
-  border-radius: 999px;
+  border-radius: 0.55rem;
 }
 
 .page-frame {
@@ -136,7 +138,7 @@ a {
 .page-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 1.5rem;
+  border-radius: 0.85rem;
   padding: 1.5rem;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18);
 }
@@ -169,7 +171,7 @@ a {
   color: #111;
   background: var(--accent);
   padding: 0.95rem 1.4rem;
-  border-radius: 999px;
+  border-radius: 0.55rem;
   transition: transform 0.2s ease, background 0.2s ease;
 }
 
@@ -196,7 +198,7 @@ a {
   background: rgba(255, 255, 255, 0.04);
   color: var(--text);
   padding: 0.95rem 1rem;
-  border-radius: 0.95rem;
+  border-radius: 0.55rem;
 }
 
 .form-actions {
@@ -209,7 +211,7 @@ a {
 
 .alert {
   padding: 1rem 1.2rem;
-  border-radius: 1rem;
+  border-radius: 0.55rem;
   background: rgba(255, 203, 5, 0.12);
   color: var(--text);
   border: 1px solid rgba(255, 203, 5, 0.22);
@@ -228,7 +230,7 @@ a {
 
 .stat-card {
   padding: 1.15rem;
-  border-radius: 1.2rem;
+  border-radius: 0.65rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.03);
 }
@@ -267,7 +269,7 @@ a {
   display: inline-flex;
   align-items: center;
   padding: 0.45rem 0.8rem;
-  border-radius: 999px;
+  border-radius: 0.4rem;
   font-size: 0.85rem;
   background: rgba(255, 203, 5, 0.12);
   color: var(--text);
@@ -295,7 +297,7 @@ a {
 .board-frame {
   background: rgba(255, 255, 255, 0.04);
   padding: 1rem;
-  border-radius: 1.4rem;
+  border-radius: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -315,7 +317,7 @@ a {
   display: grid;
   place-items: center;
   font-size: 1.6rem;
-  border-radius: 0.65rem;
+  border-radius: 0.35rem;
   cursor: pointer;
   user-select: none;
 }
@@ -359,7 +361,7 @@ a {
   width: min(520px, 100%);
   background: rgba(18, 18, 18, 0.98);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 1.25rem;
+  border-radius: 0.85rem;
   padding: 2rem;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
 }
@@ -372,7 +374,7 @@ a {
 .game-over-card .result-details {
   margin-top: 1rem;
   padding: 1rem;
-  border-radius: 1rem;
+  border-radius: 0.55rem;
   background: rgba(255, 255, 255, 0.04);
 }
 

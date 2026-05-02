@@ -34,6 +34,7 @@
 <script setup>
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { Chess } from 'chess.js';
 import { useUserStore } from '../stores/user';
 
 const userStore = useUserStore();
@@ -48,7 +49,16 @@ const viewGame = (id) => {
 };
 
 const formatDate = (value) => (value ? new Date(value).toLocaleString() : '-');
-const moveCount = (pgn) => (pgn ? pgn.split(' ').length - 1 : 0);
+const moveCount = (pgn) => {
+  if (!pgn) return 0;
+  try {
+    const c = new Chess();
+    c.loadPgn(pgn);
+    return c.history().length;
+  } catch {
+    return 0;
+  }
+};
 const resultClass = (result) => {
   return result === 'win' ? 'tag-win' : result === 'loss' ? 'tag-loss' : 'tag-draw';
 };
