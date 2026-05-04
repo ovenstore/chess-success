@@ -36,4 +36,4 @@
     - `GET /api/games` - retrieves a list of the games played by the logged-in user
     - `GET /api/games/id` - retrieves the information of a specified game based on its MongoDB id
 
-**Authentication:** This app will require authentication because it relies on users being created and authenticated before playing games.
+**Authentication:** This app will require authentication because it relies on users being created and authenticated before playing games. 
